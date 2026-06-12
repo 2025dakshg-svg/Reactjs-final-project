@@ -17,6 +17,8 @@ export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
 
   useEffect(() => {
     load()
+    window.addEventListener('reload-data', load)
+    return () => window.removeEventListener('reload-data', load)
   }, [])
 
   function load() {
@@ -26,6 +28,7 @@ export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
         if (data) {
           setLinks(data.links || [])
           setDocs(data.docs || [])
+          localStorage.setItem('slate_citations', JSON.stringify(data))
         }
       })
       .catch((e) => console.error('Citations fetch error:', e))

@@ -14,7 +14,10 @@ export default function SearchHistory() {
   function load() {
     fetch('/api/history')
       .then((r) => r.json())
-      .then((data) => setHistory(data))
+      .then((data) => {
+        setHistory(data)
+        localStorage.setItem('slate_history', JSON.stringify(data))
+      })
       .catch(() => setHistory([]))
   }
 

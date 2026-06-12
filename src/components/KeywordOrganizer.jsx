@@ -30,7 +30,10 @@ export default function KeywordOrganizer({ search = '' }) {
   function load() {
     fetch('/api/keywords')
       .then((r) => r.json())
-      .then((data) => setKeywords(data))
+      .then((data) => {
+        setKeywords(data)
+        localStorage.setItem('slate_keywords', JSON.stringify(data))
+      })
       .catch(() => setKeywords([]))
   }
 

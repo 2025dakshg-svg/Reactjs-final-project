@@ -276,6 +276,68 @@ setInterval(() => {
   }
 }, 4000)
 
+app.post('/api/sync', (req, res) => {
+  const { keywords, security, citations, history } = req.body
+  const db = readDB()
+  let changed = false
+  
+  if (Array.isArray(keywords) && keywords.length > 0) {
+    const serverDocsMap = new Map()
+    if (Array.isArray(db.keywords)) {
+      db.keywords.forEach((k) => {
+        if (Array.isArray(k.docs)) {
+          k.docs.forEach((d) => {
+            if (d.id) {
+              serverDocsMap.set(d.id, {
+                indexingStatus: d.indexingStatus,
+                shard: d.shard
+              })
+            }
+          })
+        }
+      })
+    }
+
+    const mergedKeywords = keywords.map((k) => {
+      const docs = Array.isArray(k.docs) ? k.docs.map((d) => {
+        const serverDoc = serverDocsMap.get(d.id)
+        if (serverDoc) {
+          return {
+            ...d,
+            indexingStatus: serverDoc.indexingStatus || d.indexingStatus || 'PENDING',
+            shard: serverDoc.shard || d.shard || null
+          }
+        }
+        return d
+      }) : []
+      return {
+        ...k,
+        docs
+      }
+    })
+
+    db.keywords = mergedKeywords
+    changed = true
+  }
+  if (Array.isArray(security) && security.length > 0) {
+    db.security = security
+    changed = true
+  }
+  if (citations && Array.isArray(citations.links) && citations.links.length > 0) {
+    db.citations = citations
+    changed = true
+  }
+  if (Array.isArray(history) && history.length > 0) {
+    db.history = history
+    changed = true
+  }
+  
+  if (changed) {
+    writeDB(db)
+  }
+  res.json({ ok: true })
+})
+
 app.get('/api/keywords', (req, res) => {
   const db = readDB()
   res.json(db.keywords || [])

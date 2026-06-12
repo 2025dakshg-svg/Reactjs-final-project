@@ -24,6 +24,42 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    // Read state from localStorage
+    const localKeywords = localStorage.getItem('slate_keywords')
+    const localSecurity = localStorage.getItem('slate_security')
+    const localCitations = localStorage.getItem('slate_citations')
+    const localHistory = localStorage.getItem('slate_history')
+
+    const payload = {}
+    if (localKeywords) {
+      try { payload.keywords = JSON.parse(localKeywords) } catch (e) {}
+    }
+    if (localSecurity) {
+      try { payload.security = JSON.parse(localSecurity) } catch (e) {}
+    }
+    if (localCitations) {
+      try { payload.citations = JSON.parse(localCitations) } catch (e) {}
+    }
+    if (localHistory) {
+      try { payload.history = JSON.parse(localHistory) } catch (e) {}
+    }
+
+    if (Object.keys(payload).length > 0) {
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then((r) => r.json())
+      .then(() => {
+        // Dispatch event to trigger reload chains across components
+        window.dispatchEvent(new CustomEvent('reload-data'))
+      })
+      .catch((err) => console.error('Failed to sync initial local state to backend:', err))
+    }
+  }, [])
+
+  useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000)
       return () => clearTimeout(timer)

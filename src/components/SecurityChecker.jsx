@@ -6,12 +6,17 @@ export default function SecurityChecker() {
 
   useEffect(() => {
     load()
+    window.addEventListener('reload-data', load)
+    return () => window.removeEventListener('reload-data', load)
   }, [])
 
   function load() {
     fetch('/api/security')
       .then((r) => r.json())
-      .then((data) => setSecurityData(data))
+      .then((data) => {
+        setSecurityData(data)
+        localStorage.setItem('slate_security', JSON.stringify(data))
+      })
       .catch(() => setSecurityData([]))
   }
 
