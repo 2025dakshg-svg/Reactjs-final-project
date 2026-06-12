@@ -7,8 +7,8 @@ function loadAppWithEnv(env = {}) {
   // set env vars
   Object.assign(process.env, env)
   // clear module cache for server
-  delete require.cache[require.resolve('../server/index.js')]
-  return import('../server/index.js').then((m) => m.default)
+  delete require.cache[require.resolve('../api/index.js')]
+  return import('../api/index.js').then((m) => m.default)
 }
 
 describe('Multipart upload endpoint', function () {
@@ -29,7 +29,7 @@ describe('Multipart upload endpoint', function () {
           const fileUrl = res.body.docs[0].file
           // check file exists on disk
           const filename = fileUrl.replace('/uploads/', '')
-          const uploadPath = path.join(process.cwd(), 'server', 'uploads', filename)
+          const uploadPath = path.join(process.cwd(), 'api', 'uploads', filename)
           expect(fs.existsSync(uploadPath)).to.equal(true)
           done()
         })
