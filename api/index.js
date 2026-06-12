@@ -11,13 +11,32 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 app.use(express.json())
-// serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-const DB_FILE = path.join(__dirname, 'data.json')
-const UPLOAD_DIR = path.join(__dirname, 'uploads')
 
-// ensure upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
+const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL
+const UPLOAD_DIR = isVercel ? '/tmp/uploads' : path.join(__dirname, 'uploads')
+const DB_FILE = isVercel ? '/tmp/data.json' : path.join(__dirname, 'data.json')
+
+// If on Vercel, bootstrap the database from the read-only data.json if it doesn't exist in /tmp
+if (isVercel) {
+  if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
+  const readOnlyDB = path.join(__dirname, 'data.json')
+  if (!fs.existsSync(DB_FILE)) {
+    try {
+      if (fs.existsSync(readOnlyDB)) {
+        fs.copyFileSync(readOnlyDB, DB_FILE)
+      } else {
+        fs.writeFileSync(DB_FILE, JSON.stringify({ keywords: [], security: [], citations: {}, relevance: {}, history: [] }, null, 2))
+      }
+    } catch (e) {
+      console.error('Vercel bootstrap db failed:', e)
+    }
+  }
+} else {
+  if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
+}
+
+// serve uploaded files
+app.use('/uploads', express.static(UPLOAD_DIR))
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -558,7 +577,8 @@ app.get('/api/uploads/config', (req, res) => {
 app.get('/api/uploads/check', (req, res) => {
   const p = req.query.path || ''
   if (!p || !p.startsWith('/uploads/')) return res.status(400).json({ error: 'invalid path' })
-  const full = path.join(__dirname, p.replace(/^\/+/,'').replace(/^uploads\//, 'uploads/'))
+  const rel = p.replace(/^\/+/, '').replace(/^uploads\//, '')
+  const full = path.join(UPLOAD_DIR, rel)
   fs.access(full, fs.constants.R_OK, (err) => {
     if (err) return res.status(404).json({ ok: false, path: p })
     res.status(200).json({ ok: true, path: p })
