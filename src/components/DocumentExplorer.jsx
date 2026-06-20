@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getAllDocs, getShardLoads, subscribe } from '../utils/db'
 
 export default function DocumentExplorer() {
   const [docs, setDocs] = useState([])
@@ -7,33 +8,36 @@ export default function DocumentExplorer() {
 
   useEffect(() => {
     load()
-    // Poll indexer and docs status every 3 seconds to show real-time changes
-    const interval = setInterval(() => {
-      load()
-    }, 3000)
-    return () => clearInterval(interval)
+    const unsubscribe = subscribe(load)
+    return () => unsubscribe()
   }, [])
 
   function load() {
-    // Fetch indexer stats
-    fetch('/api/indexer/status')
-      .then((r) => r.json())
-      .then((data) => setIndexerStatus(data))
-      .catch(() => setIndexerStatus(null))
-
-    // Fetch citations which returns full doc list with detailed shard info
-    fetch('/api/citations')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && Array.isArray(data.docs)) {
-          setDocs(data.docs)
-        }
-        setLoading(false)
+    try {
+      const allDocsList = getAllDocs()
+      const total = allDocsList.length
+      const indexed = allDocsList.filter(d => d.indexingStatus === 'INDEXED').length
+      const indexing = allDocsList.filter(d => d.indexingStatus === 'INDEXING').length
+      const pending = allDocsList.filter(d => d.indexingStatus === 'PENDING').length
+      const shardLoads = getShardLoads()
+      
+      setIndexerStatus({
+        total,
+        indexed,
+        indexing,
+        pending,
+        shards: [
+          { name: 'Server Alpha', count: shardLoads['Alpha'] || 0, percent: total > 0 ? Math.round(((shardLoads['Alpha'] || 0) / total) * 100) : 0 },
+          { name: 'Server Beta', count: shardLoads['Beta'] || 0, percent: total > 0 ? Math.round(((shardLoads['Beta'] || 0) / total) * 100) : 0 },
+          { name: 'Server Gamma', count: shardLoads['Gamma'] || 0, percent: total > 0 ? Math.round(((shardLoads['Gamma'] || 0) / total) * 100) : 0 }
+        ]
       })
-      .catch(() => {
-        setDocs([])
-        setLoading(false)
-      })
+      setDocs(allDocsList)
+      setLoading(false)
+    } catch (e) {
+      console.error('Failed to load document stats:', e)
+      setLoading(false)
+    }
   }
 
   const getStatusBadge = (status) => {

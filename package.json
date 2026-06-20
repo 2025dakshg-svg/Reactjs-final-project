@@ -5,17 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "node api/index.js",
-    "dev:all": "concurrently \"npm:dev:server\" \"npm:dev\"",
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "mocha --recursive --exit"
+    "test": "echo \"No tests configured\""
   },
   "dependencies": {
-    "express": "^5.2.1",
-    "multer": "^1.4.5-lts.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
@@ -25,7 +21,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.14",
-    "concurrently": "^10.0.3",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

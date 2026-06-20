@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getDB, writeDB, addHistory } from '../utils/db'
 
 export default function CreateClusterModal({ open, onClose, onCreate }) {
   const [title, setTitle] = useState('')
@@ -18,16 +19,6 @@ export default function CreateClusterModal({ open, onClose, onCreate }) {
       setTitle('')
       setDocs([{ title: '', snippet: '', file: null, preview: null }])
     }
-    // fetch server upload config
-    fetch('/api/uploads/config')
-      .then((r) => r.json())
-      .then((cfg) => {
-        if (cfg && Array.isArray(cfg.allowedMimes)) setServerAllowed(cfg.allowedMimes)
-        if (cfg && typeof cfg.maxFileBytes === 'number') setServerMaxBytes(cfg.maxFileBytes)
-      })
-      .catch(() => {
-        // ignore, fall back to defaults
-      })
   }, [open])
 
   function addDoc() {
@@ -68,6 +59,19 @@ export default function CreateClusterModal({ open, onClose, onCreate }) {
     window.dispatchEvent(new CustomEvent('show-toast', { detail: { message, type } }))
   }
 
+  function readFileAsDataURL(file) {
+    return new Promise((resolve) => {
+      if (!file) {
+        resolve(null)
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(file)
+    })
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     const docsPayload = docs.map((d) => ({ title: (d.title || '').trim(), snippet: (d.snippet || '').trim(), filename: d.file ? d.file.name : undefined }))
@@ -76,64 +80,62 @@ export default function CreateClusterModal({ open, onClose, onCreate }) {
     if (filtered.length === 0) return toast('Add at least one document', 'error')
     if (Object.keys(errors).length) return toast('Please fix file errors before submitting', 'error')
 
-    // Build FormData
-    const fd = new FormData()
-    fd.append('title', title.trim())
-    fd.append('meta', JSON.stringify(filtered))
-    docs.forEach((d) => {
-      if (d.file) fd.append('files', d.file)
-    })
-
     setUploading(true)
-    setProgress(0)
+    setProgress(10)
     try {
-      // Log files being uploaded for debug
-      docs.forEach((d, i) => {
-        if (d.file) console.log(`Uploading file[${i}]:`, d.file.name, d.file.type, d.file.size)
-      })
+      const processedDocs = await Promise.all(docs.map(async (d, idx) => {
+        const fileData = await readFileAsDataURL(d.file)
+        const docId = `d-k-${Date.now().toString(36)}-${idx}`
+        return {
+          id: docId,
+          title: (d.title || d.file?.name || `Document ${idx + 1}`).trim(),
+          snippet: (d.snippet || '').trim(),
+          file: fileData,
+          filename: d.file ? d.file.name : undefined,
+          indexingStatus: 'PENDING'
+        }
+      }))
 
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', '/api/keywords/form')
-      xhr.upload.onprogress = function (ev) {
-        if (ev.lengthComputable) {
-          const pct = Math.round((ev.loaded / ev.total) * 100)
-          setProgress(pct)
-        }
+      setProgress(60)
+
+      const clusterId = `k-${Date.now().toString(36)}`
+      const newCluster = {
+        id: clusterId,
+        title: title.trim(),
+        docs: processedDocs,
+        count: processedDocs.length
       }
-      xhr.onload = function () {
-        setUploading(false)
-        setProgress(100)
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const created = JSON.parse(xhr.responseText)
-            onCreate(created)
-            toast('Cluster created and document index started!')
-            onClose()
-          } catch (e) {
-            // parse failed but server responded OK
-            toast('Upload succeeded but response parse failed', 'error')
-          }
+
+      const currentDB = getDB()
+      const prevKeywordsSnapshot = JSON.parse(JSON.stringify(currentDB.keywords))
+      currentDB.keywords.push(newCluster)
+
+      addHistory('update', `Created cluster "${newCluster.title}"`, newCluster.title, prevKeywordsSnapshot)
+      
+      try {
+        writeDB(currentDB)
+      } catch (err) {
+        // Fallback for localStorage QuotaExceededError
+        if (err.name === 'QuotaExceededError' || err.code === 22) {
+          // Drop binary data-URLs to fit metadata in storage quota
+          newCluster.docs.forEach(d => { d.file = null })
+          currentDB.keywords[currentDB.keywords.length - 1] = newCluster
+          writeDB(currentDB)
+          toast('Storage quota reached; saved document text snippets without binary attachments.', 'warning')
         } else {
-          // Try to show body if available
-          let body = null
-          try { body = JSON.parse(xhr.responseText) } catch (e) { body = xhr.responseText }
-          const msg = `Upload failed: ${xhr.status} ${xhr.statusText} ${body ? JSON.stringify(body) : ''}`
-          console.error(msg)
-          toast(msg, 'error')
-          // keep modal open so user can inspect/ retry
+          throw err
         }
       }
-      xhr.onerror = function () {
-        setUploading(false)
-        const msg = 'Network error during upload'
-        console.error(msg)
-        toast(msg, 'error')
-      }
-      xhr.send(fd)
+
+      setProgress(100)
+      setUploading(false)
+      toast('Cluster created and document index started!')
+      onCreate(newCluster)
+      onClose()
     } catch (err) {
       setUploading(false)
-      console.error('Upload exception', err)
-      toast('Upload failed: ' + (err && err.message ? err.message : String(err)), 'error')
+      console.error('Local save exception', err)
+      toast('Save failed: ' + (err && err.message ? err.message : String(err)), 'error')
     }
   }
 

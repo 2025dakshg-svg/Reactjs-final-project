@@ -3,6 +3,7 @@ import KeywordCard from './KeywordCard'
 import CreateClusterModal from './CreateClusterModal'
 import ClusterViewer from './ClusterViewer'
 import DocumentViewer from './DocumentViewer'
+import { getDB, writeDB, addHistory, subscribe } from '../utils/db'
 
 export default function KeywordOrganizer({ search = '' }) {
   const [keywords, setKeywords] = useState([])
@@ -17,6 +18,7 @@ export default function KeywordOrganizer({ search = '' }) {
   useEffect(() => {
     load()
     window.addEventListener('reload-data', load)
+    const unsubscribe = subscribe(load)
     
     const openModal = () => setCreateModalOpen(true)
     window.addEventListener('open-create-cluster', openModal)
@@ -24,17 +26,13 @@ export default function KeywordOrganizer({ search = '' }) {
     return () => {
       window.removeEventListener('reload-data', load)
       window.removeEventListener('open-create-cluster', openModal)
+      unsubscribe()
     }
   }, [])
 
   function load() {
-    fetch('/api/keywords')
-      .then((r) => r.json())
-      .then((data) => {
-        setKeywords(data)
-        localStorage.setItem('slate_keywords', JSON.stringify(data))
-      })
-      .catch(() => setKeywords([]))
+    const dbKeywords = getDB().keywords || []
+    setKeywords(dbKeywords)
   }
 
   function handleDelete(id) {
@@ -42,15 +40,20 @@ export default function KeywordOrganizer({ search = '' }) {
       detail: {
         message: 'Are you sure you want to delete this keyword folder cluster?',
         onConfirm: () => {
-          fetch(`/api/keywords/${id}`, { method: 'DELETE' })
-            .then((r) => r.json())
-            .then(() => {
+          try {
+            const currentDB = getDB()
+            const prevKeywordsSnapshot = JSON.parse(JSON.stringify(currentDB.keywords))
+            const idx = currentDB.keywords.findIndex((k) => k.id === id)
+            if (idx !== -1) {
+              const removed = currentDB.keywords.splice(idx, 1)[0]
+              addHistory('modified', `Deleted cluster "${removed.title}"`, removed.title, prevKeywordsSnapshot)
+              writeDB(currentDB)
               window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Keyword cluster deleted successfully!' } }))
               load()
-            })
-            .catch((err) => {
-              window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Delete failed: ' + err.message, type: 'error' } }))
-            })
+            }
+          } catch (err) {
+            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Delete failed: ' + err.message, type: 'error' } }))
+          }
         }
       }
     }))
@@ -92,9 +95,7 @@ export default function KeywordOrganizer({ search = '' }) {
           </button>
         ) : null}
       </div>
-      <CreateClusterModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} onCreate={async (payload) => {
-        // POST to backend
-        await fetch('/api/keywords', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      <CreateClusterModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} onCreate={() => {
         load()
       }} />
       <ClusterViewer open={viewerOpen} onClose={() => setViewerOpen(false)} cluster={activeCluster} />

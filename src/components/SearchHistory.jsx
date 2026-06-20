@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getDB, undoLastChange, restoreHistory, subscribe } from '../utils/db'
 
 export default function SearchHistory() {
   const [history, setHistory] = useState([])
@@ -8,17 +9,16 @@ export default function SearchHistory() {
     
     // Listen for custom reload event to update history dynamically
     window.addEventListener('reload-data', load)
-    return () => window.removeEventListener('reload-data', load)
+    const unsubscribe = subscribe(load)
+    return () => {
+      window.removeEventListener('reload-data', load)
+      unsubscribe()
+    }
   }, [])
 
   function load() {
-    fetch('/api/history')
-      .then((r) => r.json())
-      .then((data) => {
-        setHistory(data)
-        localStorage.setItem('slate_history', JSON.stringify(data))
-      })
-      .catch(() => setHistory([]))
+    const dbHistory = getDB().history || []
+    setHistory(dbHistory)
   }
 
   const toast = (message, type = 'success') => {
@@ -31,32 +31,24 @@ export default function SearchHistory() {
 
   function restore(id) {
     confirmAction('Restore this previous search tag state?', () => {
-      fetch('/api/history/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.error) {
-            toast(res.error, 'error')
-          } else {
-            toast('Settings state successfully restored!')
-            window.dispatchEvent(new CustomEvent('reload-data'))
-          }
-        })
-        .catch((err) => toast('Restore failed: ' + err.message, 'error'))
+      try {
+        restoreHistory(id)
+        toast('Settings state successfully restored!')
+        window.dispatchEvent(new CustomEvent('reload-data'))
+      } catch (err) {
+        toast('Restore failed: ' + err.message, 'error')
+      }
     })
   }
 
   function handleUndo() {
-    fetch('/api/history/undo', { method: 'POST' })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.error) {
-          toast(res.error, 'error')
-        } else {
-          toast('Last change successfully undone!')
-          window.dispatchEvent(new CustomEvent('reload-data'))
-        }
-      })
-      .catch((err) => toast('Undo failed: ' + err.message, 'error'))
+    try {
+      undoLastChange()
+      toast('Last change successfully undone!')
+      window.dispatchEvent(new CustomEvent('reload-data'))
+    } catch (err) {
+      toast('Undo failed: ' + err.message, 'error')
+    }
   }
 
   const getIconName = (type) => {

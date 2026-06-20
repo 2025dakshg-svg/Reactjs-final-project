@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getDB, addCitationLink, deleteCitationLink, findShortestPath, getAllDocs, subscribe } from '../utils/db'
 
 export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
   const [links, setLinks] = useState([])
@@ -18,20 +19,21 @@ export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
   useEffect(() => {
     load()
     window.addEventListener('reload-data', load)
-    return () => window.removeEventListener('reload-data', load)
+    const unsubscribe = subscribe(load)
+    return () => {
+      window.removeEventListener('reload-data', load)
+      unsubscribe()
+    }
   }, [])
 
   function load() {
-    fetch('/api/citations')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data) {
-          setLinks(data.links || [])
-          setDocs(data.docs || [])
-          localStorage.setItem('slate_citations', JSON.stringify(data))
-        }
-      })
-      .catch((e) => console.error('Citations fetch error:', e))
+    try {
+      const dbInstance = getDB()
+      setLinks(dbInstance.citations?.links || [])
+      setDocs(getAllDocs())
+    } catch (e) {
+      console.error('Citations load error:', e)
+    }
   }
 
   const toast = (message, type = 'success') => {
@@ -47,40 +49,30 @@ export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
     if (!sourceId || !targetId) return toast('Select both source and target documents', 'error')
     if (sourceId === targetId) return toast('A document cannot reference itself', 'error')
 
-    fetch('/api/citations/link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source: sourceId, target: targetId })
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        setLinks(data.links || [])
-        setDocs(data.docs || [])
-        setSourceId('')
-        setTargetId('')
-        toast('Citation reference link added successfully!')
-      })
-      .catch((err) => toast('Failed to add link: ' + err.message, 'error'))
+    try {
+      addCitationLink(sourceId, targetId)
+      setSourceId('')
+      setTargetId('')
+      toast('Citation reference link added successfully!')
+      load()
+    } catch (err) {
+      toast('Failed to add link: ' + err.message, 'error')
+    }
   }
 
   function handleDeleteLink(src, tgt) {
     confirmAction('Delete this citation reference link?', () => {
-      fetch('/api/citations/link', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: src, target: tgt })
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          setLinks(data.links || [])
-          setDocs(data.docs || [])
-          if (shortestPath && (shortestPath.includes(src) && shortestPath.includes(tgt))) {
-            setShortestPath(null)
-            setPathSearched(false)
-          }
-          toast('Citation link deleted successfully!')
-        })
-        .catch((err) => toast('Failed to delete link: ' + err.message, 'error'))
+      try {
+        deleteCitationLink(src, tgt)
+        if (shortestPath && (shortestPath.includes(src) && shortestPath.includes(tgt))) {
+          setShortestPath(null)
+          setPathSearched(false)
+        }
+        toast('Citation link deleted successfully!')
+        load()
+      } catch (err) {
+        toast('Failed to delete link: ' + err.message, 'error')
+      }
     })
   }
 
@@ -93,13 +85,13 @@ export default function CitationLinkHub({ inlineView = true, setActiveTab }) {
       return
     }
 
-    fetch(`/api/citations/shortest-path?source=${startId}&target=${endId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setShortestPath(data.path)
-        setPathSearched(true)
-      })
-      .catch((err) => console.error('Error finding shortest path:', err))
+    try {
+      const path = findShortestPath(startId, endId)
+      setShortestPath(path)
+      setPathSearched(true)
+    } catch (err) {
+      console.error('Error finding shortest path:', err)
+    }
   }
 
   // Layout positions calculator

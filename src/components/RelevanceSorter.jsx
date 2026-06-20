@@ -1,34 +1,31 @@
 import React, { useEffect, useState } from 'react'
+import { getDB, getAllDocs, subscribe } from '../utils/db'
 
 export default function RelevanceSorter({ search = '' }) {
   const [relevanceData, setRelevanceData] = useState(null)
   const [allDocs, setAllDocs] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Fetch static relevance stats
+  // Load static relevance stats
   useEffect(() => {
-    fetch('/api/relevance')
-      .then((r) => r.json())
-      .then((data) => setRelevanceData(data))
-      .catch(() => setRelevanceData(null))
+    function load() {
+      setRelevanceData(getDB().relevance || null)
+    }
+    load()
+    const unsubscribe = subscribe(load)
+    return () => unsubscribe()
   }, [])
 
-  // Fetch all documents when search query is active
+  // Load all documents when search query is active
   useEffect(() => {
     if (search.trim()) {
       setLoading(true)
-      fetch('/api/citations')
-        .then((r) => r.json())
-        .then((data) => {
-          if (data && Array.isArray(data.docs)) {
-            setAllDocs(data.docs)
-          }
-          setLoading(false)
-        })
-        .catch(() => {
-          setAllDocs([])
-          setLoading(false)
-        })
+      try {
+        setAllDocs(getAllDocs())
+      } catch (e) {
+        setAllDocs([])
+      }
+      setLoading(false)
     } else {
       setAllDocs([])
     }

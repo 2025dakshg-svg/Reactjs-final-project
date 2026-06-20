@@ -16,19 +16,7 @@ export default function DocumentViewer() {
   }, [])
 
   useEffect(() => {
-    if (!open || !doc) return
-    if (doc.file && doc.file.startsWith('/uploads/')) {
-      // ask server if file exists (use HEAD)
-      const checkUrl = `/api/uploads/check?path=${encodeURIComponent(doc.file)}`
-      fetch(checkUrl, { method: 'HEAD' })
-        .then((r) => r.json())
-        .then((j) => {
-          setReachable(!!j && j.ok === true)
-        })
-        .catch(() => setReachable(false))
-    } else {
-      setReachable(true)
-    }
+    setReachable(true)
   }, [open, doc])
 
   if (!open || !doc) return null
@@ -40,35 +28,35 @@ export default function DocumentViewer() {
           <button onClick={() => setOpen(false)} className="text-on-surface-variant">✕</button>
         </div>
         <div>
-          {doc.file ? (
+          {doc.file && doc.file.startsWith('data:') ? (
             (() => {
-              // prefer direct serve endpoint to avoid relying on dev proxy
-              const url = doc.file.startsWith('/') ? `/api/uploads/serve?path=${encodeURIComponent(doc.file)}` : doc.file
-              if (!reachable) {
+              const url = doc.file
+              const isImage = doc.file.includes('image/png') || doc.file.includes('image/jpeg') || doc.file.includes('image/jpg') || doc.file.includes('image/gif')
+              if (isImage) {
                 return (
-                  <div className="p-6 text-center">
-                    <div className="text-lg font-medium mb-2">File not found</div>
-                    <div className="text-sm text-on-surface-variant">The file at <code className="break-all">{doc.file}</code> could not be reached. Please check the server logs and ensure the dev proxy is running.</div>
-                  </div>
+                  <img src={url} alt="document preview" className="max-h-[60vh] object-contain w-full" />
                 )
               }
-
-              return (doc.file.endsWith('.png') || doc.file.endsWith('.jpg') || doc.file.endsWith('.jpeg') || doc.file.endsWith('.gif')) ? (
-                // eslint-disable-next-line jsx-a11y/img-redundant-alt
-                <img src={url} alt="document preview" className="max-h-[60vh] object-contain w-full" />
-              ) : (
+              return (
                 <iframe src={url} title={doc.title} className="w-full h-[60vh] border" />
               )
             })()
-          ) : doc.content ? (
-            doc.content.startsWith('data:image') ? (
-              // eslint-disable-next-line jsx-a11y/img-redundant-alt
-              <img src={doc.content} alt="document preview" className="max-h-[60vh] object-contain w-full" />
-            ) : (
-              <div className="whitespace-pre-wrap text-sm">{doc.snippet || 'No preview available for this file.'}</div>
-            )
           ) : (
-            <div className="text-sm">{doc.snippet || 'No preview available.'}</div>
+            <div className="p-6 bg-surface-container-low rounded border border-outline-variant space-y-4 text-on-surface">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <span className="material-symbols-outlined">description</span>
+                <span>Document Details</span>
+              </div>
+              <p className="text-xs text-on-surface-variant font-mono bg-surface p-3 rounded border border-outline-variant">
+                <strong>Source:</strong> {doc.source || doc.filename || 'Simulated file'}<br/>
+                <strong>Status:</strong> {doc.indexingStatus || 'INDEXED'}<br/>
+                <strong>Shard:</strong> {doc.shard ? `Shard ${doc.shard}` : 'Not assigned'}
+              </p>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Document Snippet Content</h4>
+                <p className="text-sm text-on-surface leading-relaxed">{doc.snippet || 'No text snippet available.'}</p>
+              </div>
+            </div>
           )}
         </div>
       </div>

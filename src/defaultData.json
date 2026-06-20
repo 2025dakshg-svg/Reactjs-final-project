@@ -131,7 +131,7 @@
           "title": "Doc A",
           "snippet": "This is a persistence test document.",
           "indexingStatus": "INDEXED",
-          "shard": "Alpha"
+          "shard": "Beta"
         }
       ],
       "count": 1
@@ -172,7 +172,7 @@
     }
   ],
   "citations": {
-    "referencesFound": 84,
+    "referencesFound": 9,
     "links": [
       {
         "source": "d-k1-1",
@@ -210,6 +210,118 @@
         "source": "d-k1-1",
         "target": "mqatz7xc-d-meta-0-mqatz7xc"
       }
+    ],
+    "docs": [
+      {
+        "id": "d-k1-1",
+        "title": "Deposition Notes - Johnson v. Acme",
+        "snippet": "Key witness testimony regarding contract terms and timeline of events.",
+        "source": "depositions/johnson_acme.pdf",
+        "clusterId": "k1",
+        "clusterTitle": "Litigation Prep Updated",
+        "indexingStatus": "INDEXED",
+        "shard": "Alpha"
+      },
+      {
+        "id": "d-k1-2",
+        "title": "Email Chain - Contract Negotiations",
+        "snippet": "Sequence of emails between parties outlining final deliverables and acceptance criteria.",
+        "source": "email/contract_negotiations.eml",
+        "clusterId": "k1",
+        "clusterTitle": "Litigation Prep Updated",
+        "indexingStatus": "INDEXED",
+        "shard": "Beta"
+      },
+      {
+        "id": "d-k2-1",
+        "title": "Server Access Log - March",
+        "snippet": "Repeated failed login attempts from IP 203.0.113.45 followed by successful admin access.",
+        "source": "logs/server_march.log",
+        "clusterId": "k2",
+        "clusterTitle": "Audit Trail 2024",
+        "indexingStatus": "INDEXED",
+        "shard": "Gamma"
+      },
+      {
+        "id": "d-k2-2",
+        "title": "Financial Transaction Report Q1",
+        "snippet": "Aggregated transactions showing reconciliation mismatches in ledger entries.",
+        "source": "reports/fin_q1.xlsx",
+        "clusterId": "k2",
+        "clusterTitle": "Audit Trail 2024",
+        "indexingStatus": "INDEXED",
+        "shard": "Alpha"
+      },
+      {
+        "id": "d-k3-1",
+        "title": "Data Privacy Policy",
+        "snippet": "Updated retention schedule and access rules for personal data under GDPR.",
+        "source": "policies/data_privacy_v2.docx",
+        "clusterId": "k3",
+        "clusterTitle": "Compliance",
+        "indexingStatus": "INDEXED",
+        "shard": "Beta"
+      },
+      {
+        "id": "d-test-1",
+        "title": "Test Document",
+        "snippet": "Sample test doc used during development.",
+        "source": "tests/sample.txt",
+        "clusterId": "mqak4dsr",
+        "clusterTitle": "Test Tag",
+        "indexingStatus": "INDEXED",
+        "shard": "Gamma"
+      },
+      {
+        "id": "d-daksh-1",
+        "title": "Project Notes",
+        "snippet": "Ideas and action items for the React final project.",
+        "source": "notes/project.md",
+        "clusterId": "mqalbn0g",
+        "clusterTitle": "Daksh",
+        "indexingStatus": "INDEXED",
+        "shard": "Alpha"
+      },
+      {
+        "id": "mqasff8i-d-0-mqasff8i",
+        "title": "27thmay.pdf",
+        "snippet": "",
+        "source": "27thmay.pdf",
+        "clusterId": "mqasff8i",
+        "clusterTitle": "daksh",
+        "indexingStatus": "INDEXED",
+        "shard": "Beta"
+      },
+      {
+        "id": "mqasff8q-d-0-mqasff8q",
+        "title": "27thmay.pdf",
+        "snippet": "",
+        "source": "27thmay.pdf",
+        "clusterId": "mqasff8q",
+        "clusterTitle": "daksh",
+        "indexingStatus": "INDEXED",
+        "shard": "Gamma"
+      },
+      {
+        "id": "mqatz7xc-d-meta-0-mqatz7xc",
+        "title": "Doc A",
+        "snippet": "This is a persistence test document.",
+        "source": "",
+        "clusterId": "mqatz7xc",
+        "clusterTitle": "Persistence Test",
+        "indexingStatus": "INDEXED",
+        "shard": "Beta"
+      },
+      {
+        "id": "mqatz7xc-d-meta-0-mqatz7xc",
+        "title": "Doc A",
+        "snippet": "This is a persistence test document.",
+        "source": "",
+        "clusterId": "mqatz7xp",
+        "clusterTitle": "Persistence Test",
+        "indexingStatus": "INDEXED",
+        "shard": "Beta"
+      }
     ]
   },
   "relevance": {
@@ -220,281 +332,6 @@
     "dataDrift": "0.0%"
   },
   "history": [
-    {
-      "id": "mqatz7xp",
-      "type": "update",
-      "title": "Created cluster \"Persistence Test\"",
-      "tag": "Persistence Test",
-      "timestamp": "Just now",
-      "snapshot": [
-        {
-          "id": "k1",
-          "title": "Litigation Prep Updated",
-          "docs": [
-            {
-              "id": "d-k1-1",
-              "title": "Deposition Notes - Johnson v. Acme",
-              "snippet": "Key witness testimony regarding contract terms and timeline of events.",
-              "source": "depositions/johnson_acme.pdf",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            },
-            {
-              "id": "d-k1-2",
-              "title": "Email Chain - Contract Negotiations",
-              "snippet": "Sequence of emails between parties outlining final deliverables and acceptance criteria.",
-              "source": "email/contract_negotiations.eml",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 2
-        },
-        {
-          "id": "k2",
-          "title": "Audit Trail 2024",
-          "docs": [
-            {
-              "id": "d-k2-1",
-              "title": "Server Access Log - March",
-              "snippet": "Repeated failed login attempts from IP 203.0.113.45 followed by successful admin access.",
-              "source": "logs/server_march.log",
-              "indexingStatus": "INDEXED",
-              "shard": "Gamma"
-            },
-            {
-              "id": "d-k2-2",
-              "title": "Financial Transaction Report Q1",
-              "snippet": "Aggregated transactions showing reconciliation mismatches in ledger entries.",
-              "source": "reports/fin_q1.xlsx",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            }
-          ],
-          "count": 2
-        },
-        {
-          "id": "k3",
-          "title": "Compliance",
-          "docs": [
-            {
-              "id": "d-k3-1",
-              "title": "Data Privacy Policy",
-              "snippet": "Updated retention schedule and access rules for personal data under GDPR.",
-              "source": "policies/data_privacy_v2.docx",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqak4dsr",
-          "title": "Test Tag",
-          "docs": [
-            {
-              "id": "d-test-1",
-              "title": "Test Document",
-              "snippet": "Sample test doc used during development.",
-              "source": "tests/sample.txt",
-              "indexingStatus": "INDEXED",
-              "shard": "Gamma"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqalbn0g",
-          "title": "Daksh",
-          "docs": [
-            {
-              "id": "d-daksh-1",
-              "title": "Project Notes",
-              "snippet": "Ideas and action items for the React final project.",
-              "source": "notes/project.md",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqasff8i",
-          "title": "daksh",
-          "docs": [
-            {
-              "id": "mqasff8i-d-0-mqasff8i",
-              "title": "27thmay.pdf",
-              "snippet": "",
-              "file": "/uploads/mqasff8f-27thmay.pdf",
-              "filename": "27thmay.pdf",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqasff8q",
-          "title": "daksh",
-          "docs": [
-            {
-              "id": "mqasff8q-d-0-mqasff8q",
-              "title": "27thmay.pdf",
-              "snippet": "",
-              "indexingStatus": "INDEXED",
-              "filename": "27thmay.pdf",
-              "shard": "Gamma"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqatz7xc",
-          "title": "Persistence Test",
-          "docs": [
-            {
-              "id": "mqatz7xc-d-meta-0-mqatz7xc",
-              "title": "Doc A",
-              "snippet": "This is a persistence test document.",
-              "indexingStatus": "PENDING"
-            }
-          ],
-          "count": 1
-        }
-      ]
-    },
-    {
-      "id": "mqatz7xc",
-      "type": "update",
-      "title": "Created cluster \"Persistence Test\"",
-      "tag": "Persistence Test",
-      "timestamp": "Just now",
-      "snapshot": [
-        {
-          "id": "k1",
-          "title": "Litigation Prep Updated",
-          "docs": [
-            {
-              "id": "d-k1-1",
-              "title": "Deposition Notes - Johnson v. Acme",
-              "snippet": "Key witness testimony regarding contract terms and timeline of events.",
-              "source": "depositions/johnson_acme.pdf",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            },
-            {
-              "id": "d-k1-2",
-              "title": "Email Chain - Contract Negotiations",
-              "snippet": "Sequence of emails between parties outlining final deliverables and acceptance criteria.",
-              "source": "email/contract_negotiations.eml",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 2
-        },
-        {
-          "id": "k2",
-          "title": "Audit Trail 2024",
-          "docs": [
-            {
-              "id": "d-k2-1",
-              "title": "Server Access Log - March",
-              "snippet": "Repeated failed login attempts from IP 203.0.113.45 followed by successful admin access.",
-              "source": "logs/server_march.log",
-              "indexingStatus": "INDEXED",
-              "shard": "Gamma"
-            },
-            {
-              "id": "d-k2-2",
-              "title": "Financial Transaction Report Q1",
-              "snippet": "Aggregated transactions showing reconciliation mismatches in ledger entries.",
-              "source": "reports/fin_q1.xlsx",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            }
-          ],
-          "count": 2
-        },
-        {
-          "id": "k3",
-          "title": "Compliance",
-          "docs": [
-            {
-              "id": "d-k3-1",
-              "title": "Data Privacy Policy",
-              "snippet": "Updated retention schedule and access rules for personal data under GDPR.",
-              "source": "policies/data_privacy_v2.docx",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqak4dsr",
-          "title": "Test Tag",
-          "docs": [
-            {
-              "id": "d-test-1",
-              "title": "Test Document",
-              "snippet": "Sample test doc used during development.",
-              "source": "tests/sample.txt",
-              "indexingStatus": "INDEXED",
-              "shard": "Gamma"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqalbn0g",
-          "title": "Daksh",
-          "docs": [
-            {
-              "id": "d-daksh-1",
-              "title": "Project Notes",
-              "snippet": "Ideas and action items for the React final project.",
-              "source": "notes/project.md",
-              "indexingStatus": "INDEXED",
-              "shard": "Alpha"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqasff8i",
-          "title": "daksh",
-          "docs": [
-            {
-              "id": "mqasff8i-d-0-mqasff8i",
-              "title": "27thmay.pdf",
-              "snippet": "",
-              "file": "/uploads/mqasff8f-27thmay.pdf",
-              "filename": "27thmay.pdf",
-              "indexingStatus": "INDEXED",
-              "shard": "Beta"
-            }
-          ],
-          "count": 1
-        },
-        {
-          "id": "mqasff8q",
-          "title": "daksh",
-          "docs": [
-            {
-              "id": "mqasff8q-d-0-mqasff8q",
-              "title": "27thmay.pdf",
-              "snippet": "",
-              "indexingStatus": "INDEXED",
-              "filename": "27thmay.pdf",
-              "shard": "Gamma"
-            }
-          ],
-          "count": 1
-        }
-      ]
-    },
     {
       "id": "mqasft2q",
       "type": "modified",

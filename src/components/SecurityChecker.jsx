@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getDB, toggleSecurityStatus, verifySecurityChecksum, subscribe } from '../utils/db'
 
 export default function SecurityChecker() {
   const [securityData, setSecurityData] = useState([])
@@ -7,39 +8,35 @@ export default function SecurityChecker() {
   useEffect(() => {
     load()
     window.addEventListener('reload-data', load)
-    return () => window.removeEventListener('reload-data', load)
+    const unsubscribe = subscribe(load)
+    return () => {
+      window.removeEventListener('reload-data', load)
+      unsubscribe()
+    }
   }, [])
 
   function load() {
-    fetch('/api/security')
-      .then((r) => r.json())
-      .then((data) => {
-        setSecurityData(data)
-        localStorage.setItem('slate_security', JSON.stringify(data))
-      })
-      .catch(() => setSecurityData([]))
+    const dbSecurity = getDB().security || []
+    setSecurityData(dbSecurity)
   }
 
   function toggle(id) {
-    fetch(`/api/security/${id}/toggle`, { method: 'POST' })
-      .then((r) => r.json())
-      .then(() => load())
+    toggleSecurityStatus(id)
+    load()
   }
 
   function verifyChecksum(id) {
     setVerifyingId(id)
     setTimeout(() => {
-      fetch(`/api/security/${id}/verify`, { method: 'POST' })
-        .then((r) => r.json())
-        .then((res) => {
-          setVerifyingId(null)
-          window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: res.message, type: res.verified ? 'success' : 'error' } }))
-          load()
-        })
-        .catch((err) => {
-          setVerifyingId(null)
-          window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Verification failed: ' + err.message, type: 'error' } }))
-        })
+      try {
+        const res = verifySecurityChecksum(id)
+        setVerifyingId(null)
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: res.message, type: res.verified ? 'success' : 'error' } }))
+        load()
+      } catch (err) {
+        setVerifyingId(null)
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Verification failed: ' + err.message, type: 'error' } }))
+      }
     }, 700)
   }
 
