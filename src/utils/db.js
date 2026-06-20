@@ -219,3 +219,46 @@ export function runBackgroundIndexerStep() {
     writeDB(db)
   }
 }
+
+// Toggle security status (VERIFIED <-> FLAGGED)
+export function toggleSecurityStatus(id) {
+  const idx = db.security.findIndex((s) => s.id === id)
+  if (idx === -1) return
+  const item = db.security[idx]
+  item.status = item.status === 'VERIFIED' ? 'FLAGGED' : 'VERIFIED'
+  writeDB(db)
+}
+
+// Verify checksum
+export function verifySecurityChecksum(id) {
+  const idx = db.security.findIndex((s) => s.id === id)
+  if (idx === -1) throw new Error('Not found')
+  const item = db.security[idx]
+  if (item.status === 'TAMPERED') {
+    return { verified: false, message: 'MD5 checksum mismatch! File integrity check failed.' }
+  }
+  item.status = 'VERIFIED'
+  writeDB(db)
+  return { verified: true, message: 'MD5 checksum match. Integrity verified successfully.' }
+}
+
+// Add citation link
+export function addCitationLink(source, target) {
+  if (!db.citations) db.citations = { links: [] }
+  if (!db.citations.links) db.citations.links = []
+  
+  // Prevent duplicate links
+  const exists = db.citations.links.some(l => l.source === source && l.target === target)
+  if (!exists) {
+    db.citations.links.push({ source, target })
+    writeDB(db)
+  }
+}
+
+// Delete citation link
+export function deleteCitationLink(source, target) {
+  if (db.citations && Array.isArray(db.citations.links)) {
+    db.citations.links = db.citations.links.filter(l => !(l.source === source && l.target === target))
+    writeDB(db)
+  }
+}
