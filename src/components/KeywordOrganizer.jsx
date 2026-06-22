@@ -7,11 +7,7 @@ import { getDB, writeDB, addHistory, subscribe } from '../utils/db'
 
 export default function KeywordOrganizer({ search = '' }) {
   const [keywords, setKeywords] = useState([])
-  const [creating, setCreating] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newCount, setNewCount] = useState('')
-  const [newDocs, setNewDocs] = useState([{ title: '', snippet: '', source: '' }])
   const [viewerOpen, setViewerOpen] = useState(false)
   const [activeCluster, setActiveCluster] = useState(null)
 

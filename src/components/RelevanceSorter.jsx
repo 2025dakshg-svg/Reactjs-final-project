@@ -22,7 +22,7 @@ export default function RelevanceSorter({ search = '' }) {
       setLoading(true)
       try {
         setAllDocs(getAllDocs())
-      } catch (e) {
+      } catch {
         setAllDocs([])
       }
       setLoading(false)

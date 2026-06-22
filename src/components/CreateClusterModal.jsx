@@ -8,9 +8,7 @@ export default function CreateClusterModal({ open, onClose, onCreate }) {
   const ALLOWED = [
     'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ]
-  const [serverAllowed, setServerAllowed] = useState(ALLOWED)
-  const [serverMaxBytes, setServerMaxBytes] = useState(10 * 1024 * 1024)
-  const MAX_BYTES = serverMaxBytes
+  const MAX_BYTES = 10 * 1024 * 1024
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -49,7 +47,7 @@ export default function CreateClusterModal({ open, onClose, onCreate }) {
     }
     // validate
     const errs = { ...errors }
-    if (f && !serverAllowed.includes(f.type)) errs[idx] = 'Invalid file type'
+    if (f && !ALLOWED.includes(f.type)) errs[idx] = 'Invalid file type'
     else if (f && f.size > MAX_BYTES) errs[idx] = `File too large (max ${Math.round(MAX_BYTES / 1024 / 1024)}MB)`
     else delete errs[idx]
     setErrors(errs)

@@ -3,21 +3,15 @@ import React, { useEffect, useState } from 'react'
 export default function DocumentViewer() {
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(null)
-  const [reachable, setReachable] = useState(true)
 
   useEffect(() => {
     function handler(e) {
       setDoc(e.detail)
-      setReachable(true)
       setOpen(true)
     }
     window.addEventListener('open-doc', handler)
     return () => window.removeEventListener('open-doc', handler)
   }, [])
-
-  useEffect(() => {
-    setReachable(true)
-  }, [open, doc])
 
   if (!open || !doc) return null
   return (
